@@ -1,36 +1,41 @@
-from langchain.vectorstores import FAISS
-from langchain.embeddings.openai import OpenAIEmbeddings
+# utils.py
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
+
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-# 1. Load PDF and extract text
-def load_pdf(file_path):
-    loader = PyPDFLoader(file_path)  # Uses pypdf internally
-    documents = loader.load()  # Loads each page as a document
-    return documents
 
-# 2. Split the text into smaller chunks (to avoid large token issues)
+# Load PDF and return document objects
+def load_pdf(path):
+    loader = PyPDFLoader(path)
+    return loader.load()
+
+
+# Split long documents into smaller chunks
 def split_documents(documents):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,        # each chunk = 500 characters
-        chunk_overlap=50       # 50 characters repeated from previous to preserve context
-    )
-    chunks = splitter.split_documents(documents)
-    return chunks
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    return splitter.split_documents(documents)
 
-# 3. Create embeddings and store in FAISS vector DB
+
+# Create a vector database from document chunks
 def create_vector_db(chunks):
-    embeddings = OpenAIEmbeddings()  # Converts text to vectors using OpenAI
-    vector_store = FAISS.from_documents(chunks, embeddings)  # Store vectors in FAISS
+    # ✅ Use HuggingFaceEmbeddings (no need for OpenAI key)
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    vector_store = FAISS.from_documents(chunks, embedding=embeddings)
     return vector_store
 
-# 4. Save FAISS DB locally (optional step for caching)
-def save_vector_db(vector_store, path="faiss_index"):
+
+# Save the vector store locally
+def save_vector_db(vector_store, path="vector_store"):
     vector_store.save_local(path)
 
-# 5. Load FAISS DB (if already saved)
-def load_vector_db(path="faiss_index"):
-    embeddings = OpenAIEmbeddings()
-    vector_store = FAISS.load_local(path, embeddings)
-    return vector_store
+
+# Load the saved vector store
+def load_vector_db(path="vector_store"):
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    return FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)
