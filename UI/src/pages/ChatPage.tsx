@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Upload, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Upload, File, MessageSquare, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
@@ -116,37 +116,24 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
     }
   };
 
-  const renderAssistantContent = (content: string) => {
-    const lines = content.split('\n');
-    return (
-      <>
-        {lines.map((line, idx) => {
-          const trimmed = line.trim();
-          const isBullet = /^[-*]\s+/.test(trimmed);
-          if (trimmed === '') return null;
-          return isBullet ? (
-            <li key={idx}>{trimmed.replace(/^[-*]\s+/, '')}</li>
-          ) : (
-            <p key={idx}>{trimmed}</p>
-          );
-        })}
-      </>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-4xl border border-gray-700 rounded-2xl overflow-hidden shadow-lg bg-black relative">
-        {/* Header with arrow */}
-        <div className="bg-black/90 backdrop-blur-xl border-b border-cyan-500/30 p-4 z-10">
+    <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/6 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/3 right-1/6 w-56 h-56 bg-violet-500/10 rounded-full blur-3xl animate-float-delayed"></div>
+      </div>
+
+      <div className="bg-black/90 backdrop-blur-xl border-b border-cyan-500/30 p-4 relative z-10">
+        <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
-              variant="ghost"
-              onClick={onBack}
-              className="text-gray-400 hover:text-white hover:scale-110 transition-all duration-300"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+  variant="ghost"
+  onClick={onBack}
+  className="text-gray-400 hover:text-white hover:scale-110 transition-all duration-300"
+>
+  <ArrowLeft className="w-5 h-5" />
+</Button>
+
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-green-400 bg-clip-text text-transparent animate-gradient-x">
                 Intelligent Document Chat
@@ -156,74 +143,65 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
               </p>
             </div>
           </div>
+
+         
+
+          <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
         </div>
+      </div>
 
-        <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
-
-        {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto h-[65vh] p-4 space-y-4 bg-black">
-          {isUploading && <LoadingSpinner message="Analyzing document with AI intelligence..." />}
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <Card className={`max-w-xs md:max-w-md lg:max-w-lg ${message.type === 'user' ? 'bg-gradient-to-r from-cyan-500 to-violet-500 shadow-lg shadow-cyan-500/20' : 'bg-black/80 border-gray-700/50 hover:bg-black/90 transition-all duration-300'} hover:scale-105 transition-all duration-300`}>
-                <CardContent className="p-4">
-                  {message.type === 'assistant' ? (
-                    <div className="text-sm text-gray-200 space-y-1">
-                      {renderAssistantContent(message.content)}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-white">{message.content}</p>
-                  )}
-                  <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-cyan-100' : 'text-gray-400'}`}>{message.timestamp.toLocaleTimeString()}</p>
-                </CardContent>
-              </Card>
+      <div className="flex-1 overflow-hidden flex flex-col relative z-10">
+        {messages.length === 0 && !isUploading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto p-8 animate-fade-in-up">
+              <div className="bg-gradient-to-r from-cyan-500 to-violet-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow hover:scale-110 transition-all duration-500">
+                <MessageSquare className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-4">Ready for Intelligence!</h2>
+              <p className="text-gray-400 mb-6">Upload your PDF document to unlock intelligent, contextual conversations.</p>
+              <Button onClick={() => fileInputRef.current?.click()} className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-cyan-500/30">
+                <Upload className="w-4 h-4 mr-2" /> Select Document
+              </Button>
             </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <Card className="bg-black/80 border-gray-700/50 max-w-xs animate-fade-in-up">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-100"></div>
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce delay-200"></div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {isUploading && <LoadingSpinner message="Analyzing document with AI intelligence..." />}
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
+                <Card className={`max-w-xs md:max-w-md lg:max-w-lg ${message.type === 'user' ? 'bg-gradient-to-r from-cyan-500 to-violet-500 shadow-lg shadow-cyan-500/20' : 'bg-black/80 border-gray-700/50 hover:bg-black/90 transition-all duration-300'} hover:scale-105 transition-all duration-300`}>
+                  <CardContent className="p-4">
+                    <p className={`text-sm ${message.type === 'user' ? 'text-white' : 'text-gray-200'}`}>{message.content}</p>
+                    <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-cyan-100' : 'text-gray-400'}`}>{message.timestamp.toLocaleTimeString()}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <Card className="bg-black/80 border-gray-700/50 max-w-xs animate-fade-in-up">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-100"></div>
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce delay-200"></div>
+                      </div>
+                      <span className="text-gray-400 text-sm">AI is analyzing...</span>
                     </div>
-                    <span className="text-gray-400 text-sm">AI is analyzing...</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {!uploadedFile && (
-          <div className="border-t border-gray-800/50 p-4 bg-black/60 backdrop-blur-xl">
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-cyan-500/30"
-            >
-              <Upload className="w-4 h-4 mr-2" /> Select Document
-            </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
         {uploadedFile && (
-          <div className="border-t border-gray-800/50 p-4 bg-black/60 backdrop-blur-xl">
+          <div className="border-t border-gray-800/50 p-4 bg-black/60 backdrop-blur-xl relative z-10">
             <form onSubmit={handleSendMessage} className="flex space-x-4">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask intelligent questions about your document..."
-                disabled={isLoading}
-                className="flex-1 bg-black/60 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500 hover:border-gray-600/70 transition-all duration-300"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !inputMessage.trim()}
-                className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 transition-all duration-500 disabled:opacity-50 shadow-lg hover:shadow-cyan-500/30"
-              >
+              <Input value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder="Ask intelligent questions about your document..." disabled={isLoading} className="flex-1 bg-black/60 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500 hover:border-gray-600/70 transition-all duration-300" />
+              <Button type="submit" disabled={isLoading || !inputMessage.trim()} className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 transition-all duration-500 disabled:opacity-50 shadow-lg hover:shadow-cyan-500/30">
                 <Send className="w-4 h-4" />
               </Button>
             </form>
