@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Upload, File, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Upload, MessageSquare } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
@@ -116,24 +116,55 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/6 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/3 right-1/6 w-56 h-56 bg-violet-500/10 rounded-full blur-3xl animate-float-delayed"></div>
-      </div>
+  const renderAssistantContent = (content: string) => {
+    const lines = content.split('\n');
+    const elements: React.ReactNode[] = [];
+    let inList = false;
+    let listItems: React.ReactNode[] = [];
 
-      <div className="bg-black/90 backdrop-blur-xl border-b border-cyan-500/30 p-4 relative z-10">
-        <div className="container mx-auto flex items-center justify-between">
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim();
+      const isBullet = /^[-*•]\s+/.test(trimmed);
+
+      if (trimmed === '') {
+        if (inList) {
+          elements.push(<ul className="list-disc list-inside space-y-1 mb-2" key={`list-${idx}`}>{listItems}</ul>);
+          listItems = [];
+          inList = false;
+        }
+        elements.push(<div key={`space-${idx}`} className="h-2" />);
+      } else if (isBullet) {
+        inList = true;
+        listItems.push(<li key={`item-${idx}`}>{trimmed.replace(/^[-*•]\s+/, '')}</li>);
+      } else {
+        if (inList) {
+          elements.push(<ul className="list-disc list-inside space-y-1 mb-2" key={`list-${idx}`}>{listItems}</ul>);
+          listItems = [];
+          inList = false;
+        }
+        elements.push(<p key={`p-${idx}`} className="mb-1">{trimmed}</p>);
+      }
+    });
+
+    if (inList && listItems.length > 0) {
+      elements.push(<ul className="list-disc list-inside space-y-1 mb-2" key="final-list">{listItems}</ul>);
+    }
+
+    return elements;
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-4xl border border-gray-700 rounded-2xl overflow-hidden shadow-lg bg-black relative">
+        <div className="bg-black/90 backdrop-blur-xl border-b border-cyan-500/30 p-4 z-10">
           <div className="flex items-center space-x-4">
             <Button
-  variant="ghost"
-  onClick={onBack}
-  className="text-gray-400 hover:text-white hover:scale-110 transition-all duration-300"
->
-  <ArrowLeft className="w-5 h-5" />
-</Button>
-
+              variant="ghost"
+              onClick={onBack}
+              className="text-gray-400 hover:text-white hover:scale-110 transition-all duration-300"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-green-400 bg-clip-text text-transparent animate-gradient-x">
                 Intelligent Document Chat
@@ -143,35 +174,35 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
               </p>
             </div>
           </div>
-
-         
-
-          <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
         </div>
-      </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col relative z-10">
-        {messages.length === 0 && !isUploading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center max-w-md mx-auto p-8 animate-fade-in-up">
-              <div className="bg-gradient-to-r from-cyan-500 to-violet-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow hover:scale-110 transition-all duration-500">
-                <MessageSquare className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-4">Ready for Intelligence!</h2>
-              <p className="text-gray-400 mb-6">Upload your PDF document to unlock intelligent, contextual conversations.</p>
-              <Button onClick={() => fileInputRef.current?.click()} className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-cyan-500/30">
-                <Upload className="w-4 h-4 mr-2" /> Select Document
-              </Button>
+        <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
+
+        {messages.length === 0 && !uploadedFile && !isUploading ? (
+          <div className="text-center max-w-md mx-auto p-8 animate-fade-in-up">
+            <div className="bg-gradient-to-r from-cyan-500 to-violet-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow hover:scale-110 transition-all duration-500">
+              <MessageSquare className="w-10 h-10 text-white" />
             </div>
+            <h2 className="text-2xl font-bold text-white mb-4">Ready for Intelligence!</h2>
+            <p className="text-gray-400 mb-6">Upload your PDF document to unlock intelligent, contextual conversations.</p>
+            <Button onClick={() => fileInputRef.current?.click()} className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-cyan-500/30">
+              <Upload className="w-4 h-4 mr-2" /> Select Document
+            </Button>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto h-[65vh] p-4 space-y-4 bg-black">
             {isUploading && <LoadingSpinner message="Analyzing document with AI intelligence..." />}
             {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
+              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <Card className={`max-w-xs md:max-w-md lg:max-w-lg ${message.type === 'user' ? 'bg-gradient-to-r from-cyan-500 to-violet-500 shadow-lg shadow-cyan-500/20' : 'bg-black/80 border-gray-700/50 hover:bg-black/90 transition-all duration-300'} hover:scale-105 transition-all duration-300`}>
                   <CardContent className="p-4">
-                    <p className={`text-sm ${message.type === 'user' ? 'text-white' : 'text-gray-200'}`}>{message.content}</p>
+                    {message.type === 'assistant' ? (
+                      <div className="text-sm text-gray-200 space-y-1">
+                        {renderAssistantContent(message.content)}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-white">{message.content}</p>
+                    )}
                     <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-cyan-100' : 'text-gray-400'}`}>{message.timestamp.toLocaleTimeString()}</p>
                   </CardContent>
                 </Card>
@@ -198,10 +229,20 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
         )}
 
         {uploadedFile && (
-          <div className="border-t border-gray-800/50 p-4 bg-black/60 backdrop-blur-xl relative z-10">
+          <div className="border-t border-gray-800/50 p-4 bg-black/60 backdrop-blur-xl">
             <form onSubmit={handleSendMessage} className="flex space-x-4">
-              <Input value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder="Ask intelligent questions about your document..." disabled={isLoading} className="flex-1 bg-black/60 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500 hover:border-gray-600/70 transition-all duration-300" />
-              <Button type="submit" disabled={isLoading || !inputMessage.trim()} className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 transition-all duration-500 disabled:opacity-50 shadow-lg hover:shadow-cyan-500/30">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask intelligent questions about your document..."
+                disabled={isLoading}
+                className="flex-1 bg-black/60 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500 hover:border-gray-600/70 transition-all duration-300"
+              />
+              <Button
+                type="submit"
+                disabled={isLoading || !inputMessage.trim()}
+                className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 hover:scale-110 transition-all duration-500 disabled:opacity-50 shadow-lg hover:shadow-cyan-500/30"
+              >
                 <Send className="w-4 h-4" />
               </Button>
             </form>
