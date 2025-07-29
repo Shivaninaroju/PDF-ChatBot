@@ -1,7 +1,10 @@
-openai
-langchain
-streamlit
-faiss-cpu
-pypdf
-tiktoken
+fastapi
+uvicorn
+python-multipart
 python-dotenv
+pydantic
+langchain
+langchain-groq
+openai  # Needed for langchain's internal dependencies
+tiktoken  # Token counting support
+PyMuPDF  # For PDF parsing (used in `load_pdf()` in utils)
