@@ -15,7 +15,6 @@ interface Message {
 interface ChatPageProps {
   onBack: () => void;
 }
-
 const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
