@@ -11,6 +11,7 @@ interface Message {
   content: string;
   timestamp: Date;
 }
+
 interface ChatPageProps {
   onBack: () => void;
 }
