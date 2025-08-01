@@ -1,4 +1,4 @@
-# Chat With Your PDF - RAG Assistant
+## Chat With Your PDF - RAG Assistant
 
 A modern, AI-powered document intelligence system that transforms PDF documents into interactive, conversational knowledge bases using Retrieval-Augmented Generation (RAG) technology.
 
