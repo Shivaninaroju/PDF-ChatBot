@@ -11,6 +11,7 @@ from utils import load_pdf, split_documents, create_vector_db, load_vector_db
 
 load_dotenv()
 app = FastAPI()
+
 # Allow frontend on localhost:5173 (Vite)
 app.add_middleware(
     CORSMiddleware,
