@@ -20,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+
 # Serve static files if needed
 app.mount("/assets", StaticFiles(directory="UI/dist/assets"), name="assets")
 
