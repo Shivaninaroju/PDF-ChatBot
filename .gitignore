@@ -1,0 +1,33 @@
+# Python
+venv/
+venv312/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Frontend
+UI/node_modules/
+UI/dist/
+*.tsbuildinfo
+
+# Uploaded / Temporary files
+storage/
+temp.pdf
+*.tmp
+*.temp
+
+# Local vector database
+vector_store/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
