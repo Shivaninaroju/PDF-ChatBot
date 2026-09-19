@@ -1,16 +1,21 @@
 import os
+from pathlib import Path
 from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# Local .env only. Never override process env (Render sets GROQ_API_KEY there).
+_PROJECT_ROOT_ENV = Path(__file__).resolve().parents[2] / ".env"
+if _PROJECT_ROOT_ENV.is_file():
+    load_dotenv(_PROJECT_ROOT_ENV, override=False)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore"
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     # Application
@@ -52,8 +57,9 @@ class Settings(BaseSettings):
     SIMILARITY_THRESHOLD: float = 0.25
 
     def get_groq_api_key(self) -> str:
-        """Returns clean GROQ API key with whitespace and quotes stripped."""
-        key = self.GROQ_API_KEY.strip()
+        """Returns GROQ API key from the process environment, then Settings/.env."""
+        raw = os.environ.get("GROQ_API_KEY") or self.GROQ_API_KEY or ""
+        key = raw.strip()
         if (key.startswith('"') and key.endswith('"')) or (key.startswith("'") and key.endswith("'")):
             key = key[1:-1].strip()
         return key
